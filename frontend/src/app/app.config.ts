@@ -11,12 +11,12 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi()),
     provideRouter(routes),
     provideApollo(() => {
-      const httpLink = inject(HttpLink); // ✅ inject the service
+      const httpLink = inject(HttpLink); 
 
       return {
         cache: new InMemoryCache(),
         link: httpLink.create({
-          uri: 'http://localhost:4000/graphql', // ✅ make sure this is correct
+          uri: 'http://localhost:4000/graphql', 
         }),
       };
     }),
