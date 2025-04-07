@@ -1,33 +1,37 @@
-<div class="signup-container">
-  <h2 class="page-title">Signup</h2>
+<div class="signup-wrapper">
+  <div class="signup-container">
+    <h2 class="page-title">Create an Account</h2>
 
-  <form (ngSubmit)="onSignup()">
-    <input
-      type="text"
-      placeholder="Username"
-      [(ngModel)]="username"
-      name="username"
-      required
-    />
+    <form (ngSubmit)="onSignup()" #signupForm="ngForm" novalidate>
+      <input
+        type="text"
+        placeholder="Full Name"
+        [(ngModel)]="name"
+        name="name"
+        required
+      />
+      <input
+        type="email"
+        placeholder="Email Address"
+        [(ngModel)]="email"
+        name="email"
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        [(ngModel)]="password"
+        name="password"
+        required
+      />
+      <button type="submit" [disabled]="signupForm.invalid">Sign Up</button>
+    </form>
 
-    <input
-      type="email"
-      placeholder="Email"
-      [(ngModel)]="email"
-      name="email"
-      required
-    />
-
-    <input
-      type="password"
-      placeholder="Password"
-      [(ngModel)]="password"
-      name="password"
-      required
-    />
-
-    <button type="submit">Signup</button>
-
-    <div *ngIf="message" class="message">{{ message }}</div>
-  </form>
+    <div class="message success" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+    <div class="message error" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+  </div>
 </div>

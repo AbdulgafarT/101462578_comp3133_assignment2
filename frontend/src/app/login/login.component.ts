@@ -1,48 +1,69 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { Apollo, gql } from 'apollo-angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GraphqlService } from '../services/graphql.service'; 
-import { SessionService } from '../services/session.service';
-import { Router } from '@angular/router';
+import { SessionService } from '../services/session.service'; 
+
+const LOGIN_MUTATION = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      id
+      name
+      email
+    }
+  }
+`;
 
 @Component({
   selector: 'app-login',
   standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss'], 
-  imports: [CommonModule, FormsModule], 
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
   email = '';
   password = '';
-  message = '';
+  errorMessage = '';
+  successMessage = '';
 
   constructor(
-    private graphqlService: GraphqlService,
-    private sessionService: SessionService,
-    private router: Router
+    private apollo: Apollo,
+    private router: Router,
+    private sessionService: SessionService 
   ) {}
 
   onLogin() {
-    if (!this.email || !this.password) {
-      this.message = 'All fields are required';
-      return;
-    }
-
-    this.graphqlService.login({ email: this.email, password: this.password }).subscribe({
-      next: (res: any) => {
-        const token = res?.data?.login?.token;
-        if (token) {
-          this.sessionService.setToken(token);
-          this.message = 'Login successful!';
-          this.router.navigate(['/employee']); 
+    this.apollo.mutate({
+      mutation: LOGIN_MUTATION,
+      variables: {
+        email: this.email,
+        password: this.password
+      }
+    }).subscribe({
+      next: (result: any) => {
+        const user = result?.data?.login;
+      
+        if (user) {
+          this.sessionService.setUser(user);     // ✅ Store full user object
+          this.successMessage = `Welcome ${user.name}!`;
+          this.errorMessage = '';
+      
+          // Delay navigation to ensure data is saved
+          setTimeout(() => {
+            this.router.navigate(['/employee']).then(() => {
+              window.location.reload(); // ✅ Force full reload to pick up user info
+            });
+          }, 1000);
         } else {
-          this.message = 'Login failed: No token received.';
+          this.successMessage = '';
+          this.errorMessage = 'Login failed. Please try again.';
         }
       },
-      error: (err: any) => {
-        console.error('Login error:', err);
-        this.message = 'Login failed!';
+      error: (err) => {
+        this.errorMessage = err.message;
+        this.successMessage = '';
       }
     });
   }
